@@ -9,7 +9,9 @@
         "defaultHeight": 100,
         "autoShow":  true,
         "frame": false,
-        "showTaskbarIcon": true
+        "showTaskbarIcon": true,
+        "url": "http://scottlogic.github.io/bitflux-openfin/parent.html",
+        "applicationIcon": "http://scottlogic.github.io/bitflux-openfin/favicon.ico"
     },
     "runtime": {
         "arguments": "",

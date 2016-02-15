@@ -9,7 +9,7 @@
         "defaultHeight": 100,
         "autoShow":  true,
         "frame": false,
-        "showTaskbarIcon": false
+        "showTaskbarIcon": true
     },
     "runtime": {
         "arguments": "",

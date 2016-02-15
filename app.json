@@ -1,0 +1,22 @@
+{
+    "devtools_port": 9090,
+    "startup_app": {
+        "name": "OpenFinD3FC",
+        "uuid": "OpenFinD3FC",
+        "maxWidth": 0,
+        "maxHeight": 0,
+        "defaultWidth": 0,
+        "defaultHeight": 0,
+        "frame": false,
+        "showTaskbarIcon": false
+    },
+    "runtime": {
+        "arguments": "",
+        "version": "stable"
+    },
+    "shortcut": {
+        "company": "OpenFin",
+        "description": "Hosts BitFlux as an OpenFin application.",
+        "name": "OpenFinD3FC"
+    }
+}

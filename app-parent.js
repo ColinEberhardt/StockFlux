@@ -12,23 +12,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     angular.module('openfin.parent', ['openfin.store', 'openfin.window']);
     angular.module('openfin.store', []);
     angular.module('openfin.currentWindow', []);
-    angular.module('openfin.window', ['openfin.store']);
+    angular.module('openfin.window', ['openfin.store', 'openfin.geometry', 'openfin.config']);
+    angular.module('openfin.config', []);
 })();
 
 (function () {
     'use strict';
-
-    function getConfig() {
-        return {
-            'autoShow': true,
-            'minWidth': 918,
-            'minHeight': 510,
-            'defaultWidth': 1280,
-            'defaultHeight': 720,
-            'frame': false,
-            'url': 'index.html'
-        };
-    }
 
     var ParentCtrl = function ParentCtrl($scope, storeService, windowCreationService) {
         _classCallCheck(this, ParentCtrl);
@@ -42,13 +31,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             if (length !== 0) {
                 // Restoring previously open windows
                 for (i = 0; i < length; i++) {
-                    var config = getConfig();
-                    config.name = previousWindows[i];
-                    windowCreationService.createMainWindow(config);
+                    var name = previousWindows[i];
+                    windowCreationService.createMainWindow(name, storeService.open(name).isCompact());
                 }
             } else {
                 // Creating new window
-                windowCreationService.createMainWindow(getConfig());
+                windowCreationService.createMainWindow();
             }
 
             $scope.$on('updateFavourites', function (event, data) {
@@ -138,6 +126,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.update(stock);
             }
         }, {
+            key: 'toggleCompact',
+            value: function toggleCompact(isCompact) {
+                this.store.compact = isCompact;
+                this.save();
+            }
+        }, {
+            key: 'isCompact',
+            value: function isCompact() {
+                return this.store.compact;
+            }
+        }, {
             key: 'closeWindow',
             value: function closeWindow() {
                 this.store.closed = Date.now();
@@ -206,7 +205,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var newStore = {
                         id: windowName,
                         stocks: stocks,
-                        closed: 0
+                        closed: 0,
+                        compact: false
                     };
 
                     this.storage.push(newStore);
@@ -229,127 +229,262 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 (function (fin) {
     'use strict';
 
-    function getName() {
-        // TODO: Should probably change this...
-        return 'window' + Math.floor(Math.random() * 1000) + Math.ceil(Math.random() * 999);
-    }
+    var poolSize = 3;
 
-    var AppManager = function () {
-        function AppManager() {
-            _classCallCheck(this, AppManager);
+    var FreeWindowPool = function () {
+        function FreeWindowPool($q, configService) {
+            _classCallCheck(this, FreeWindowPool);
 
+            this.pool = [];
+            this.$q = $q;
+            this.configService = configService;
+
+            for (var i = 0; i < poolSize; i++) {
+                this._fillPool();
+            }
+        }
+
+        _createClass(FreeWindowPool, [{
+            key: '_fillPool',
+            value: function _fillPool() {
+                var deferred = this.$q.defer();
+                this.pool.push({ promise: deferred.promise, window: new fin.desktop.Window(this.configService.getWindowConfig(), function () {
+                        deferred.resolve();
+                    })
+                });
+            }
+        }, {
+            key: 'fetch',
+            value: function fetch() {
+                var pooledWindow = this.pool.shift();
+                this._fillPool();
+
+                return pooledWindow;
+            }
+        }]);
+
+        return FreeWindowPool;
+    }();
+
+    var WindowTracker = function () {
+        function WindowTracker() {
+            _classCallCheck(this, WindowTracker);
+
+            this.openWindows = {};
+            this.mainWindowsCache = [];
             this.windowsOpen = 0;
         }
 
-        _createClass(AppManager, [{
-            key: 'increment',
-            value: function increment() {
+        _createClass(WindowTracker, [{
+            key: 'add',
+            value: function add(_window) {
+                this.mainWindowsCache.push(_window);
                 this.windowsOpen++;
             }
         }, {
-            key: 'decrement',
-            value: function decrement() {
+            key: 'addTearout',
+            value: function addTearout(name, _window) {
+                if (!this.openWindows[name]) {
+                    this.openWindows[name] = [].concat(_window);
+                } else {
+                    this.openWindows[name].push(_window);
+                }
+            }
+        }, {
+            key: 'dispose',
+            value: function dispose(_window, closedCb) {
+                var parent = this.openWindows[_window.name];
+                if (parent) {
+                    // Close all the OpenFin tearout windows associated with the closing parent.
+                    parent.forEach(function (child) {
+                        return child.close();
+                    });
+                }
+
+                if (this.windowsOpen !== 1) {
+                    closedCb();
+                }
+
+                var index = this.mainWindowsCache.indexOf(_window);
+                this.mainWindowsCache.slice(index, 1);
+
                 this.windowsOpen--;
 
                 if (this.windowsOpen === 0) {
+                    // This was the last open window; close the application.
                     window.close();
                 }
             }
         }, {
-            key: 'count',
-            value: function count() {
-                return this.windowsOpen;
+            key: 'getMainWindows',
+            value: function getMainWindows() {
+                return this.mainWindowsCache;
             }
         }]);
 
-        return AppManager;
+        return WindowTracker;
+    }();
+
+    var DragService = function () {
+        function DragService(storeService, geometryService, windowTracker, tearoutWindow, $q) {
+            _classCallCheck(this, DragService);
+
+            this.storeService = storeService;
+            this.geometryService = geometryService;
+            this.windowTracker = windowTracker;
+            this.tearoutWindow = tearoutWindow;
+            this.$q = $q;
+            this.otherInstance = null;
+        }
+
+        _createClass(DragService, [{
+            key: 'overAnotherInstance',
+            value: function overAnotherInstance(cb) {
+                var _this = this;
+
+                var mainWindows = this.windowTracker.getMainWindows(),
+                    result = false,
+                    promises = [];
+
+                mainWindows.forEach(function (mainWindow) {
+                    var deferred = _this.$q.defer();
+                    promises.push(deferred.promise);
+                    mainWindow.getState(function (state) {
+                        if (state !== 'minimized' && _this.geometryService.windowsIntersect(_this.tearoutWindow, mainWindow.getNativeWindow())) {
+                            _this.otherInstance = mainWindow;
+                            result = true;
+                        }
+
+                        deferred.resolve();
+                    });
+                });
+
+                this.$q.all(promises).then(function () {
+                    return cb(result);
+                });
+            }
+        }, {
+            key: 'moveToOtherInstance',
+            value: function moveToOtherInstance(stock) {
+                this.storeService.open(this.otherInstance.name).add(stock);
+                this.otherInstance.bringToFront();
+            }
+        }]);
+
+        return DragService;
     }();
 
     var WindowCreationService = function () {
-        function WindowCreationService(storeService) {
+        function WindowCreationService(storeService, geometryService, $q, configService) {
+            var _this2 = this;
+
             _classCallCheck(this, WindowCreationService);
 
             this.storeService = storeService;
-            this.openWindows = {};
-            this.windowsCache = [];
+            this.geometryService = geometryService;
+            this.$q = $q;
+            this.configService = configService;
+            this.windowTracker = new WindowTracker();
             this.firstName = true;
-            this.apps = new AppManager();
+            this.pool = null;
+
+            this.ready(function () {
+                _this2.pool = new FreeWindowPool($q, configService);
+            });
         }
 
         _createClass(WindowCreationService, [{
-            key: '_createWindow',
-            value: function _createWindow(config, successCb, closedCb) {
-                var _this = this;
-
-                if (!config.name) {
-                    config.name = getName();
-                }
-
-                var newWindow = new fin.desktop.Window(config, function () {
-                    _this.windowsCache.push(newWindow);
-
-                    if (successCb) {
-                        successCb(newWindow);
-                    }
-                });
-
-                this.apps.increment();
-
-                newWindow.addEventListener('closed', function (e) {
-                    var parent = _this.openWindows[newWindow.name];
-                    if (parent) {
-                        for (var i = 0, max = parent.length; i < max; i++) {
-                            parent[i].close();
-                        }
-                    }
-
-                    var index = _this.windowsCache.indexOf(newWindow);
-                    _this.windowsCache.slice(index, 1);
-
-                    if (closedCb) {
-                        closedCb();
-                    }
-
-                    _this.apps.decrement();
-                });
-
-                return newWindow;
-            }
-        }, {
             key: 'createMainWindow',
-            value: function createMainWindow(config, successCb) {
-                var _this2 = this;
+            value: function createMainWindow(name, isCompact, successCb) {
+                var _this3 = this;
 
-                this._createWindow(config, function (newWindow) {
+                var windowCreatedCb = function windowCreatedCb(newWindow) {
                     // TODO
                     // Begin super hack
-                    newWindow.getNativeWindow().windowService = _this2;
-                    newWindow.getNativeWindow().storeService = _this2.storeService;
+                    newWindow.getNativeWindow().windowService = _this3;
+                    newWindow.getNativeWindow().storeService = _this3.storeService;
                     // End super hack
+
+                    _this3.windowTracker.add(newWindow);
 
                     if (successCb) {
                         successCb(newWindow);
                     }
 
                     newWindow.show();
-                }, function () {
-                    if (_this2.apps.count() !== 1) {
-                        _this2.storeService.open(config.name).closeWindow();
+                    newWindow.bringToFront();
+                };
+
+                var mainWindow;
+                if (name) {
+                    mainWindow = new fin.desktop.Window(isCompact ? this.configService.getCompactConfig(name) : this.configService.getWindowConfig(name), function () {
+                        windowCreatedCb(mainWindow);
+                    });
+                } else {
+                    var poolWindow = this.pool.fetch();
+                    mainWindow = poolWindow.window;
+                    if (isCompact) {
+                        this.updateOptions(poolWindow.window, true);
+                        this.window.resizeTo(230, 500, 'top-right');
                     }
+
+                    poolWindow.promise.then(function () {
+                        windowCreatedCb(mainWindow);
+                    });
+                }
+
+                mainWindow.addEventListener('closed', function (e) {
+                    _this3.windowTracker.dispose(mainWindow, function () {
+                        _this3.storeService.open(mainWindow.name).closeWindow();
+                    });
                 });
             }
         }, {
             key: 'createTearoutWindow',
-            value: function createTearoutWindow(config, parentName) {
-                var tearoutWindow = this._createWindow(config);
+            value: function createTearoutWindow(parentName) {
+                var tearoutWindow = new fin.desktop.Window(this.configService.getTearoutConfig());
 
-                if (!this.openWindows[parentName]) {
-                    this.openWindows[parentName] = [].concat(tearoutWindow);
-                } else {
-                    this.openWindows[parentName].push(tearoutWindow);
-                }
+                this.windowTracker.addTearout(parentName, tearoutWindow);
 
                 return tearoutWindow;
+            }
+        }, {
+            key: 'updateOptions',
+            value: function updateOptions(_window, isCompact) {
+                if (isCompact) {
+                    _window.updateOptions({
+                        resizable: false,
+                        minHeight: 500,
+                        minWidth: 230,
+                        maximizable: false
+                    });
+                } else {
+                    _window.updateOptions({
+                        resizable: true,
+                        minHeight: 510,
+                        minWidth: 918,
+                        maximizable: true
+                    });
+                }
+            }
+        }, {
+            key: 'updateOptions',
+            value: function updateOptions(_window, isCompact) {
+                if (isCompact) {
+                    _window.updateOptions({
+                        resizable: false,
+                        minHeight: 500,
+                        minWidth: 230,
+                        maximizable: false
+                    });
+                } else {
+                    _window.updateOptions({
+                        resizable: true,
+                        minHeight: 510,
+                        minWidth: 918,
+                        maximizable: true
+                    });
+                }
             }
         }, {
             key: 'ready',
@@ -359,14 +494,213 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'getWindows',
             value: function getWindows() {
-                return this.windowsCache;
+                return this.windowTracker.getMainWindows();
+            }
+        }, {
+            key: 'registerDrag',
+            value: function registerDrag(tearoutWindow) {
+                return new DragService(this.storeService, this.geometryService, this.windowTracker, tearoutWindow, this.$q);
             }
         }]);
 
         return WindowCreationService;
     }();
 
-    WindowCreationService.$inject = ['storeService'];
+    WindowCreationService.$inject = ['storeService', 'geometryService', '$q', 'configService'];
 
     angular.module('openfin.window').service('windowCreationService', WindowCreationService);
 })(fin);
+
+(function () {
+    'use strict';
+
+    var Point = function Point(x, y) {
+        _classCallCheck(this, Point);
+
+        this.x = x || 0;
+        this.y = y || 0;
+    };
+
+    var Rectangle = function () {
+        function Rectangle(rect) {
+            _classCallCheck(this, Rectangle);
+
+            this.origin = new Point(rect.left, rect.top);
+            this.extent = new Point(rect.width, rect.height);
+        }
+
+        _createClass(Rectangle, [{
+            key: 'top',
+            value: function top() {
+                return this.origin.y;
+            }
+        }, {
+            key: 'left',
+            value: function left() {
+                return this.origin.x;
+            }
+        }, {
+            key: 'bottom',
+            value: function bottom() {
+                return this.top() + this.extent.y;
+            }
+        }, {
+            key: 'right',
+            value: function right() {
+                return this.left() + this.extent.x;
+            }
+        }, {
+            key: 'corner',
+            value: function corner() {
+                return new Point(this.right(), this.bottom());
+            }
+        }, {
+            key: 'intersects',
+            value: function intersects(otherRectangle) {
+                //return true if we overlap, false otherwise
+
+                var otherOrigin = otherRectangle.origin,
+                    otherCorner = otherRectangle.corner();
+
+                return otherCorner.x > this.origin.x && otherCorner.y > this.origin.y && otherOrigin.x < this.corner().x && otherOrigin.y < this.corner().y;
+            }
+        }]);
+
+        return Rectangle;
+    }();
+
+    var GeometryService = function () {
+        function GeometryService() {
+            _classCallCheck(this, GeometryService);
+        }
+
+        _createClass(GeometryService, [{
+            key: 'rectangle',
+            value: function rectangle(arg) {
+                return new Rectangle(arg);
+            }
+
+            // Helper function to retrieve the height, width, top, and left from a window object
+
+        }, {
+            key: 'getWindowPosition',
+            value: function getWindowPosition(windowElement) {
+                return {
+                    height: windowElement.outerHeight,
+                    width: windowElement.outerWidth,
+                    top: windowElement.screenY,
+                    left: windowElement.screenX
+                };
+            }
+
+            // Calculate the screen position of an element
+
+        }, {
+            key: 'elementScreenPosition',
+            value: function elementScreenPosition(windowElement, element) {
+                var relativeElementPosition = element.getBoundingClientRect();
+
+                return {
+                    height: relativeElementPosition.height,
+                    width: relativeElementPosition.width,
+                    top: windowElement.top + relativeElementPosition.top,
+                    left: windowElement.left + relativeElementPosition.left
+                };
+            }
+        }, {
+            key: 'windowsIntersect',
+            value: function windowsIntersect(openFinWindow, _window) {
+                var nativeWindow1 = openFinWindow.getNativeWindow(),
+                    rectangle1 = this.rectangle(this.getWindowPosition(nativeWindow1)),
+                    rectangle2 = this.rectangle(this.getWindowPosition(_window));
+
+                return rectangle1.intersects(rectangle2);
+            }
+        }]);
+
+        return GeometryService;
+    }();
+
+    angular.module('openfin.geometry', []).service('geometryService', GeometryService);
+})();
+
+(function () {
+
+    var RESIZE_NO_LIMIT = 50000;
+
+    var ConfigService = function () {
+        function ConfigService() {
+            _classCallCheck(this, ConfigService);
+        }
+
+        _createClass(ConfigService, [{
+            key: 'createName',
+            value: function createName() {
+                // TODO: Should probably change this...
+                return 'window' + Math.floor(Math.random() * 1000) + Math.ceil(Math.random() * 999);
+            }
+        }, {
+            key: 'getWindowConfig',
+            value: function getWindowConfig(name) {
+                return {
+                    name: name || this.createName(),
+                    autoShow: false,
+                    frame: false,
+                    showTaskbarIcon: true,
+                    saveWindowState: true,
+                    url: 'index.html',
+                    resizable: true,
+                    maximizable: true,
+                    minWidth: 918,
+                    minHeight: 510,
+                    maxWidth: RESIZE_NO_LIMIT,
+                    maxHeight: RESIZE_NO_LIMIT,
+                    defaultWidth: 1280,
+                    defaultHeight: 720
+                };
+            }
+        }, {
+            key: 'getCompactConfig',
+            value: function getCompactConfig(name) {
+                return {
+                    name: name || this.createName(),
+                    autoShow: false,
+                    frame: false,
+                    showTaskbarIcon: true,
+                    saveWindowState: true,
+                    url: 'index.html',
+                    resizable: false,
+                    maximizable: false,
+                    minWidth: 230,
+                    minHeight: 500,
+                    maxWidth: 230,
+                    maxHeight: 500,
+                    defaultWidth: 230,
+                    defaultHeight: 500
+                };
+            }
+        }, {
+            key: 'getTearoutConfig',
+            value: function getTearoutConfig(name) {
+                return {
+                    name: name || this.createName(),
+                    autoShow: false,
+                    frame: false,
+                    maximizable: false,
+                    resizable: false,
+                    showTaskbarIcon: false,
+                    saveWindowState: false,
+                    maxWidth: 230,
+                    maxHeight: 100,
+                    url: 'tearout.html'
+                };
+            }
+        }]);
+
+        return ConfigService;
+    }();
+
+    ConfigService.$inject = [];
+
+    angular.module('openfin.config').service('configService', ConfigService);
+})();

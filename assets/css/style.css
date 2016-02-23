@@ -1,145 +1,145 @@
 @import url(https://fonts.googleapis.com/css?family=Roboto);
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,100,300,500);
-.sc-icon-andrews-pitchfork-tool {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-andrews-pitchfork-tool {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 22.55639097744361% 44.44444444444444%;
   width: 30px;
   height: 25px;
 }
-.sc-icon-annotations-tool {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-annotations-tool {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 58.64661654135338% 27.77777777777778%;
   width: 30px;
   height: 25px;
 }
-.sc-icon-area-series {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-area-series {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 100% 27.77777777777778%;
   width: 25px;
   height: 25px;
 }
-.sc-icon-arrow-line-tool {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-arrow-line-tool {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 0 44.44444444444444%;
   width: 30px;
   height: 25px;
 }
-.sc-icon-bar-series {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-bar-series {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 100% 0;
   width: 25px;
   height: 25px;
 }
-.sc-icon-bollinger-bands-indicator {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-bollinger-bands-indicator {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 72.46376811594203% 100%;
   width: 25px;
   height: 25px;
 }
-.sc-icon-candlestick-series {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-candlestick-series {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 36.231884057971016% 100%;
   width: 25px;
   height: 25px;
 }
-.sc-icon-delete {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-delete {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 93.87755102040816% 75.75757575757575%;
   width: 16px;
   height: 16px;
 }
-.sc-icon-ellipse-tool {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-ellipse-tool {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 22.55639097744361% 72.22222222222223%;
   width: 30px;
   height: 25px;
 }
-.sc-icon-fibonacci-arc-tool {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-fibonacci-arc-tool {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 45.11278195488722% 72.22222222222223%;
   width: 30px;
   height: 25px;
 }
-.sc-icon-fibonnacci-fan-tool {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-fibonnacci-fan-tool {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 81.203007518797% 0;
   width: 30px;
   height: 25px;
 }
-.sc-icon-fibonnacci-retracement-tool {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-fibonnacci-retracement-tool {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 0 72.22222222222223%;
   width: 30px;
   height: 25px;
 }
-.sc-icon-freeform-tool {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-freeform-tool {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 36.090225563909776% 0;
   width: 30px;
   height: 25px;
 }
-.sc-icon-line-series {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-line-series {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 78.26086956521739% 55.55555555555556%;
   width: 25px;
   height: 25px;
 }
-.sc-icon-macd-indicator {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-macd-indicator {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 0 100%;
   width: 25px;
   height: 25px;
 }
-.sc-icon-moving-average-indicator {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-moving-average-indicator {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 18.115942028985508% 100%;
   width: 25px;
   height: 25px;
 }
-.sc-icon-navigator-handle {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-navigator-handle {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 93.87755102040816% 91.91919191919192%;
   width: 16px;
   height: 16px;
 }
-.sc-icon-ohlc-series {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-ohlc-series {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 78.26086956521739% 27.77777777777778%;
   width: 25px;
   height: 25px;
 }
-.sc-icon-point-series {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-point-series {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 54.34782608695652% 100%;
   width: 25px;
   height: 25px;
 }
-.sc-icon-rectangle-tool {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-rectangle-tool {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 58.64661654135338% 0;
   width: 30px;
   height: 25px;
 }
-.sc-icon-reset-active {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-reset-active {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 17.26618705035971% 0;
   width: 24px;
   height: 40px;
 }
-.sc-icon-reset-inactive {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-reset-inactive {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 0 0;
   width: 24px;
   height: 40px;
 }
-.sc-icon-rsi-indicator {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-rsi-indicator {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 100% 55.55555555555556%;
   width: 25px;
   height: 25px;
 }
-.sc-icon-settings {
-  background: url("sc-icon-sprite-72ad6bfc.svg") no-repeat;
+.bf-icon-settings {
+  background: url("bf-icon-sprite-72ad6bfc.svg") no-repeat;
   background-position: 99.35483870967742% 70.09345794392523%;
   width: 8px;
   height: 8px;
@@ -8451,7 +8451,7 @@ fieldset[disabled] .btn-danger.active {
   cursor: pointer;
 }
 .x-axis-row {
-  height: 23px;
+  height: 27px;
 }
 .x-axis-row .chart {
   padding-right: 60px;
@@ -8604,14 +8604,14 @@ fieldset[disabled] .btn-danger.active {
 }
 #charts-container .x-axis-row,
 #overlay .x-axis-row {
-  flex: 0 0 23px;
+  flex: 0 0 27px;
   display: flex;
   flex-direction: row;
 }
 #charts-container .x-axis-row #x-axis-container,
 #overlay .x-axis-row #x-axis-container {
   flex: 1;
-  height: 23px;
+  height: 27px;
   margin-right: 60px;
 }
 #charts-container #navbar-row,
@@ -8753,7 +8753,7 @@ fieldset[disabled] .btn-danger.active {
 }
 #toolbar {
   height: 50px;
-  right: 95px;
+  right: 125px;
   left: 280px;
   position: absolute;
 }
@@ -8765,6 +8765,7 @@ fieldset[disabled] .btn-danger.active {
 #minimise-button,
 #maximise-button,
 #compact-button,
+#full_view-button,
 #normal_size-button,
 #close-button {
   position: fixed;
@@ -8777,6 +8778,7 @@ fieldset[disabled] .btn-danger.active {
 #minimise-button,
 #maximise-button,
 #compact-button,
+#full_view-button,
 #normal_size-button,
 #close-button {
   width: 14px;
@@ -8785,11 +8787,12 @@ fieldset[disabled] .btn-danger.active {
 #normal_size-button {
   right: 45px;
 }
-#compact-button {
+#compact-button,
+#full_view-button {
   right: 75px;
 }
 #minimise-button {
-  right: 75px;
+  right: 105px;
 }
 #close-button {
   right: 15px;
@@ -8797,14 +8800,14 @@ fieldset[disabled] .btn-danger.active {
 #toolbar img {
   vertical-align: initial;
 }
-.compact #compact-button {
+.compact #full_view-button {
   right: 45px;
 }
 .compact #minimise-button {
   right: 75px;
 }
 .compact #minimise-button,
-.compact #compact-button,
+.compact #full_view-button,
 .compact #close-button {
   top: 7px;
 }
@@ -8888,17 +8891,21 @@ fieldset[disabled] .btn-danger.active {
 .compact .sidetab-top {
   right: 95px;
   left: 0px;
+  top: 0px;
   position: absolute;
   -webkit-app-region: drag;
 }
 .compact #searchScroll,
 .compact #favScroll {
   top: 34px;
-  bottom: 52px;
+  bottom: 34px;
 }
 .compact .dark,
 .compact .darkens:hover {
   background: transparent;
+}
+.compact .favourites {
+  margin-top: 34px;
 }
 .compact .favourites,
 .compact #favScroll,
@@ -8906,6 +8913,7 @@ fieldset[disabled] .btn-danger.active {
   width: 100%;
 }
 .compact .search {
+  transition: all 0.2s linear 0.1s;
   bottom: 0px;
   width: 100%;
   height: 34px;
@@ -8915,6 +8923,13 @@ fieldset[disabled] .btn-danger.active {
 }
 .compact .search input {
   padding-top: 7px;
+}
+.compact .search.expanded {
+  height: calc(100% - 34px);
+}
+.compact .search.expanded #searchScroll {
+  top: 68px;
+  bottom: 0px;
 }
 .compact .top-icon {
   float: left;
@@ -8982,7 +8997,6 @@ fieldset[disabled] .btn-danger.active {
 }
 .compact .compact-search {
   display: block;
-  transition: none;
 }
 .compact .main-search {
   display: none;
@@ -8999,6 +9013,7 @@ fieldset[disabled] .btn-danger.active {
 }
 .drop-target {
   height: 100px;
+  background-color: #2E5356;
 }
 .favourite {
   padding-top: 5px;
@@ -9076,11 +9091,17 @@ fieldset[disabled] .btn-danger.active {
   background: #1A1F25;
 }
 .compact .dark {
-  background: transparent;
+  background: #28313D;
 }
 .compact .favourites,
 .compact .favourite .top {
   transition: none;
+}
+.compact .favourite {
+  pointer-events: none;
+}
+.compact .favourite .tearable {
+  pointer-events: all;
 }
 minichart {
   position: absolute;
@@ -9089,7 +9110,6 @@ minichart {
   overflow: hidden;
 }
 .minichart {
-  background-image: linear-gradient(to bottom, #307A71, #28313D 92%);
   width: 155px;
   height: 40px;
   overflow: visible !important;
@@ -9104,29 +9124,13 @@ minichart {
 .minichart g .point {
   fill: #42D8BD !important;
 }
-.darkens:hover .minichart,
-.dark .minichart {
-  background-image: linear-gradient(to bottom, #307A71, #1A1F25 92%);
+.minichart-gradient.top {
+  stop-color: #42D8BD;
+  stop-opacity: 0.5;
 }
-.darkens:hover .minichart g,
-.dark .minichart g {
-  fill: #1A1F25 !important;
-}
-.darkens:hover .minichart g .point,
-.dark .minichart g .point {
-  fill: #42D8BD !important;
-}
-.compact .darkens:hover .minichart,
-.compact .dark .minichart {
-  background-image: linear-gradient(to bottom, #307A71, #28313D 92%);
-}
-.compact .darkens:hover .minichart g,
-.compact .dark .minichart g {
-  fill: #28313D !important;
-}
-.compact .darkens:hover .minichart g .point,
-.compact .dark .minichart g .point {
-  fill: #42D8BD !important;
+.minichart-gradient.bottom {
+  stop-color: #42D8BD;
+  stop-opacity: 0;
 }
 .star {
   cursor: pointer;

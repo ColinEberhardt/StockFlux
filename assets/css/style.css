@@ -8751,6 +8751,28 @@ fieldset[disabled] .btn-danger.active {
 .compact .right-content {
   display: none;
 }
+.closed-time {
+  font-size: 10px;
+  font-weight: 300;
+}
+.closed-stock {
+  font-size: 12px;
+  font-weight: 400;
+}
+.closed-card {
+  height: 70px;
+  border-bottom: 1px solid #1A1F25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  cursor: default;
+}
+.closed-card:hover {
+  background: #1A1F25;
+}
 #toolbar {
   height: 50px;
   right: 125px;
@@ -8837,6 +8859,43 @@ fieldset[disabled] .btn-danger.active {
 }
 .favourites.expanded {
   -webkit-animation-name: favourites;
+}
+.version {
+  bottom: 15px;
+  left: 70px;
+  position: absolute;
+  color: #AEB1B5;
+  font-weight: 300;
+  font-size: 11px;
+  cursor: pointer;
+}
+.version:hover {
+  color: #42D8BD;
+  text-decoration: underline;
+}
+.favClosed {
+  bottom: 15px;
+  left: 246px;
+  position: absolute;
+  height: 20px;
+  width: 20px;
+}
+.favClosedCover {
+  position: fixed;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  z-index: 9;
+}
+.closedSelection {
+  background: #464E58;
+  position: fixed;
+  bottom: 40px;
+  left: 240px;
+  width: 180px;
+  height: 350px;
+  box-shadow: 2px 2px 2px 2px #1A1F25;
 }
 .contracted {
   width: 50px;
@@ -9097,12 +9156,6 @@ fieldset[disabled] .btn-danger.active {
 .compact .favourite .top {
   transition: none;
 }
-.compact .favourite {
-  pointer-events: none;
-}
-.compact .favourite .tearable {
-  pointer-events: all;
-}
 minichart {
   position: absolute;
   padding-top: 10px;
@@ -9299,7 +9352,7 @@ minichart {
 }
 .sideScroll {
   top: 52px;
-  bottom: 0px;
+  bottom: 52px;
   position: fixed;
   padding-bottom: 30px;
   padding-bottom: 0px;

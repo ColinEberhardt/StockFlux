@@ -10,9 +10,23 @@
                     <p>Use the search tab to add new stocks to the list.</p>
                 </div>
                 <div ng-repeat="stock in favouritesCtrl.stocks | orderBy: 'index'">
-                    <favourite selection="favouritesCtrl.selection()" select="favouritesCtrl.select(stock)" single="favouritesCtrl.single()"
-                               stock="stock" icon="favouritesCtrl.icon(stock)">
+                    <favourite selection="favouritesCtrl.selection()" select="favouritesCtrl.select(stock)"
+                               single-click="favouritesCtrl.singleClick(stock)" double-click="favouritesCtrl.doubleClick(stock)"
+                               single="favouritesCtrl.single()" stock="stock" icon="favouritesCtrl.icon(stock)">
                     </favourite>
+                </div>
+            </div>
+        </div>
+        <a class="version" ng-click="sidebarCtrl.openGithub()" insert-version />
+        <div ng-controller="ClosedWindowsCtrl as closedWindowsCtrl">
+            <div class="favClosed">
+                <icon name="closed_tabs" icon-click="closedWindowsCtrl.click(); $event.stopPropagation();"></icon>
+            </div>
+            <div ng-show="closedWindowsCtrl.closedTabsShow" class="favClosedCover" ng-click="closedWindowsCtrl.closedTabsShow = false">
+                <div class="closedSelection">
+                    <div ng-repeat="closedWindow in closedWindowsCtrl.closedWindows | orderBy:'-closed'">
+                        <closed-card card-window="closedWindow"></closed-card>
+                    </div>
                 </div>
             </div>
         </div>

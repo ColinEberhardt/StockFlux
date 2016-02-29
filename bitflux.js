@@ -8,26 +8,6 @@
     fc = 'default' in fc ? fc['default'] : fc;
     $ = 'default' in $ ? $['default'] : $;
 
-    var event = {
-        crosshairChange: 'crosshairChange',
-        viewChange: 'viewChange',
-        newTrade: 'newTrade',
-        historicDataLoaded: 'historicDataLoaded',
-        historicFeedError: 'historicFeedError',
-        streamingFeedError: 'streamingFeedError',
-        streamingFeedClose: 'streamingFeedClose',
-        dataProductChange: 'dataProductChange',
-        dataPeriodChange: 'dataPeriodChange',
-        resetToLatest: 'resetToLatest',
-        clearAllPrimaryChartIndicatorsAndSecondaryCharts: 'clearAllPrimaryChartIndicatorsAndSecondaryCharts',
-        primaryChartSeriesChange: 'primaryChartSeriesChange',
-        primaryChartYValueAccessorChange: 'primaryChartYValueAccessorChange',
-        primaryChartIndicatorChange: 'primaryChartIndicatorChange',
-        secondaryChartChange: 'secondaryChartChange',
-        indicatorChange: 'indicatorChange',
-        notificationClose: 'notificationClose'
-    };
-
     function centerOnDate(domain, data, centerDate) {
         var dataExtent = fc.util.extent()
           .fields('date')(data);
@@ -256,6 +236,26 @@
         throttle: throttle
     };
 
+    var event = {
+        crosshairChange: 'crosshairChange',
+        viewChange: 'viewChange',
+        newTrade: 'newTrade',
+        historicDataLoaded: 'historicDataLoaded',
+        historicFeedError: 'historicFeedError',
+        streamingFeedError: 'streamingFeedError',
+        streamingFeedClose: 'streamingFeedClose',
+        dataProductChange: 'dataProductChange',
+        dataPeriodChange: 'dataPeriodChange',
+        resetToLatest: 'resetToLatest',
+        clearAllPrimaryChartIndicatorsAndSecondaryCharts: 'clearAllPrimaryChartIndicatorsAndSecondaryCharts',
+        primaryChartSeriesChange: 'primaryChartSeriesChange',
+        primaryChartYValueAccessorChange: 'primaryChartYValueAccessorChange',
+        primaryChartIndicatorChange: 'primaryChartIndicatorChange',
+        secondaryChartChange: 'secondaryChartChange',
+        indicatorChange: 'indicatorChange',
+        notificationClose: 'notificationClose'
+    };
+
     function zoomBehavior(width) {
 
         var dispatch = d3.dispatch('zoom');
@@ -421,7 +421,7 @@
         d3.rebind(secondary, chart, 'yTickValues', 'yTickFormat', 'yTicks', 'xDomain', 'yDomain');
 
         secondary.dimensionChanged = function(container) {
-            zoomWidth = parseInt(container.style('width'), 10) - yAxisWidth;
+            zoomWidth = util.width(container.node()) - yAxisWidth;
         };
 
         return secondary;
@@ -513,6 +513,7 @@
     function volume() {
         var dispatch = d3.dispatch(event.viewChange);
         var volumeBar = fc.series.bar()
+          .xValue(function(d) { return d.date; })
           .yValue(function(d) { return d.volume; });
 
         var chart = base()
@@ -568,6 +569,7 @@
         var barHeight = extentHeight;
         var handleCircleCenter = borderWidth + barHeight / 2;
         var handleBarWidth = 2;
+        var yExtentPadding = [0, 0.04];
 
         var dispatch = d3.dispatch(event.viewChange);
 
@@ -580,8 +582,10 @@
         var viewScale = fc.scale.dateTime();
 
         var area = fc.series.area()
+          .xValue(function(d) { return d.date; })
           .yValue(function(d) { return d.close; });
         var line = fc.series.line()
+          .xValue(function(d) { return d.date; })
           .yValue(function(d) { return d.close; });
         var brush = d3.svg.brush();
         var navMulti = fc.series.multi()
@@ -632,12 +636,12 @@
         var maskYScale = d3.scale.linear();
 
         var brushMask = fc.series.area()
+          .xValue(function(d) { return d.date; })
           .yValue(function(d) { return d.close; })
           .xScale(maskXScale)
           .yScale(maskYScale);
 
         var layoutWidth;
-
 
         function setHide(selection, brushHide) {
             selection.select('.plot-area')
@@ -669,7 +673,7 @@
             });
 
             maskXScale.domain(fc.util.extent().fields('date')(data));
-            maskYScale.domain(fc.util.extent().fields(['low', 'high'])(data));
+            maskYScale.domain(fc.util.extent().fields(['low', 'high']).pad(yExtentPadding)(data));
 
             selection.select('mask')
                 .datum(data)
@@ -687,7 +691,7 @@
               fc.util.extent().fields('date')(model.data),
               model.data);
             var yExtent = fc.util.extent()
-              .fields(['low', 'high'])(filteredData);
+              .fields(['low', 'high']).pad(yExtentPadding)(filteredData);
 
             var brushHide = false;
 
@@ -741,53 +745,38 @@
     }
 
     function legend() {
-        var formatPrice;
-        var formatVolume;
-        var formatTime;
-        var lastDataPointDisplayed;
+        var priceFormat;
+        var volumeFormat;
+        var timeFormat;
 
-        var legendItems = [
-            'T',
-            function(d) { return formatTime(d.date); },
-            'O',
-            function(d) { return formatPrice(d.open); },
-            'H',
-            function(d) { return formatPrice(d.high); },
-            'L',
-            function(d) { return formatPrice(d.low); },
-            'C',
-            function(d) { return formatPrice(d.close); },
-            'V',
-            function(d) { return formatVolume(d.volume); }
-        ];
+        var tooltip = fc.chart.tooltip()
+            .items([
+                ['T', function(d) { return timeFormat(d.date); }],
+                ['O', function(d) { return priceFormat(d.open); }],
+                ['H', function(d) { return priceFormat(d.high); }],
+                ['L', function(d) { return priceFormat(d.low); }],
+                ['C', function(d) { return priceFormat(d.close); }],
+                ['V', function(d) { return volumeFormat(d.volume); }]
+            ]);
 
         function legend(selection) {
             selection.each(function(model) {
                 var container = d3.select(this);
+                var tooltipContainer = container.select('#tooltip');
 
-                formatPrice = model.product.priceFormat;
-                formatVolume = model.product.volumeFormat;
-                formatTime = model.period.timeFormat;
+                priceFormat = model.product.priceFormat;
+                volumeFormat = model.product.volumeFormat;
+                timeFormat = model.period.timeFormat;
 
-                if (model.data == null || model.data !== lastDataPointDisplayed) {
-                    lastDataPointDisplayed = model.data;
+                container.classed('hidden', !model.data);
 
-                    var span = container.selectAll('span')
-                      .data(legendItems);
+                tooltipContainer.layout({flexDirection: 'row'})
+                    .selectAll('.tooltip')
+                    .layout({marginRight: 40, marginLeft: 15});
 
-                    span.enter()
-                      .append('span')
-                      .attr('class', function(d, i) { return i % 2 === 0 ? 'legendLabel' : 'legendValue'; });
-
-                    span.text(function(d, i) {
-                        var text = '';
-                        if (i % 2 === 0) {
-                            return d;
-                        } else if (model.data) {
-                            return d(model.data);
-                        }
-                        return text;
-                    });
+                if (model.data) {
+                    tooltipContainer.datum(model.data)
+                        .call(tooltip);
                 }
             });
         }
@@ -818,7 +807,7 @@
         }
 
         xAxisChart.dimensionChanged = function(container) {
-            xScale.range([0, parseInt(container.style('width'), 10)]);
+            xScale.range([0, util.width(container.node())]);
         };
 
         return xAxisChart;
@@ -987,12 +976,14 @@
         crosshair.id = util.uid();
 
         var gridlines = fc.annotation.gridline()
-          .yTicks(5)
           .xTicks(0);
         var closeLine = fc.annotation.line()
           .orient('horizontal')
           .value(currentYValueAccessor)
-          .label('');
+          .label('')
+          .decorate(function(g) {
+              g.classed('close-line', true);
+          });
         closeLine.id = util.uid();
 
         var multi = fc.series.multi()
@@ -1061,7 +1052,7 @@
             var width = currentSeries.option.width(data);
 
             crosshair.decorate(function(selection) {
-                selection.classed('band hidden-xs hidden-sm', true);
+                selection.classed('band', true);
 
                 selection.selectAll('.vertical > line')
                   .style('stroke-width', width);
@@ -1070,7 +1061,6 @@
 
         function lineCrosshair(selection) {
             selection.classed('band', false)
-                .classed('hidden-xs hidden-sm', true)
                 .selectAll('line')
                 .style('stroke-width', null);
         }
@@ -1113,7 +1103,7 @@
               .yDecorate(function(s) {
                   var closePriceTick = s.selectAll('.tick')
                     .filter(function(d) { return d === latestPrice; })
-                    .classed('closeLine', true);
+                    .classed('close-line', true);
 
                   var calloutHeight = 18;
                   closePriceTick.select('path')
@@ -1123,6 +1113,8 @@
                   closePriceTick.select('text')
                     .attr('transform', 'translate(' + calloutHeight / 2 + ',1)');
               });
+
+            gridlines.yTicks(tickValues.length - 1);
 
             // Redraw
             primaryChart.plotArea(multi);
@@ -1143,7 +1135,7 @@
 
         // Call when the main layout is modified
         primary.dimensionChanged = function(container) {
-            zoomWidth = parseInt(container.style('width'), 10) - yAxisWidth;
+            zoomWidth = util.width(container.node()) - yAxisWidth;
         };
 
         return primary;
@@ -1300,6 +1292,7 @@
                 var container = d3.select(this);
 
                 var products = model.products;
+
                 container.select('#product-dropdown')
                     .datum({
                         config: model.productConfig,
@@ -1362,7 +1355,7 @@
                     return option.isSelected;
                 }).indexOf(true);
 
-                container.select('#series-dropdown')
+                container.select('.series-dropdown')
                     .datum({
                         config: model.seriesSelector.config,
                         options: model.seriesSelector.options,
@@ -1380,7 +1373,7 @@
                         return option;
                     });
 
-                container.select('#indicator-dropdown')
+                container.select('.indicator-dropdown')
                     .datum({
                         config: model.indicatorSelector.config,
                         options: options,
@@ -1461,7 +1454,8 @@
     function overlay() {
         var dispatch = d3.dispatch(
             event.primaryChartIndicatorChange,
-            event.secondaryChartChange);
+            event.secondaryChartChange,
+            event.dataProductChange);
 
         var primaryChartIndicatorToggle = editIndicatorGroup()
             .on(event.indicatorChange, dispatch[event.primaryChartIndicatorChange]);
@@ -1469,9 +1463,22 @@
         var secondaryChartToggle = editIndicatorGroup()
             .on(event.indicatorChange, dispatch[event.secondaryChartChange]);
 
+        var dataProductDropdown = dropdown()
+            .on('optionChange', dispatch[event.dataProductChange]);
+
         var overlay = function(selection) {
             selection.each(function(model) {
                 var container = d3.select(this);
+
+                var products = model.products;
+
+                container.select('#mobile-product-dropdown')
+                    .datum({
+                        config: model.productConfig,
+                        options: products.map(productAdaptor),
+                        selectedIndex: products.map(function(p) { return p.id; }).indexOf(model.selectedProduct.id)
+                    })
+                    .call(dataProductDropdown);
 
                 container.select('#overlay-primary-container .edit-indicator-container')
                     .datum({selectedIndicators: model.primaryIndicators})
@@ -1671,6 +1678,14 @@
             }));
         }
 
+        dataInterface.candlesOfData = function(x) {
+            if (!arguments.length) {
+                return candlesOfData;
+            }
+            candlesOfData = x;
+            return dataInterface;
+        };
+
         d3.rebind(dataInterface, dispatch, 'on');
 
         return dataInterface;
@@ -1809,10 +1824,13 @@
         };
     }
 
-    function overlay$1() {
+    function overlay$1(initialProducts, initialSelectedProduct) {
         return {
             primaryIndicators: [],
-            secondaryIndicators: []
+            secondaryIndicators: [],
+            productConfig: dropdownConfig(),
+            products: initialProducts,
+            selectedProduct: initialSelectedProduct
         };
     }
 
@@ -1998,7 +2016,7 @@
             if (!arguments.length) {
                 return dataGeneratorAdaptor;
             }
-            if (x !== null) {
+            if (x !== 'Data Generator') {
                 throw new Error('Random Financial Data Generator does not support products.');
             }
             product = x;
@@ -2191,7 +2209,7 @@
 
         function initProducts() {
             return {
-                generated: model.data.product(null, 'Data Generator', [periods.day1], sources.generated, '.3s'),
+                generated: model.data.product('Data Generator', 'Data Generator', [periods.day1], sources.generated, '.3s'),
                 quandl: model.data.product('GOOG', 'GOOG', [periods.day1, periods.week1], sources.quandl, '.3s')
             };
         }
@@ -2213,17 +2231,20 @@
             var ohlcOption = model.menu.option('OHLC', 'ohlc', ohlc, 'bf-icon-ohlc-series');
             ohlcOption.option.extentAccessor = ['high', 'low'];
 
-            var line = fc.series.line();
+            var line = fc.series.line()
+                .xValue(function(d) { return d.date; });
             line.id = util.uid();
             var lineOption = model.menu.option('Line', 'line', line, 'bf-icon-line-series');
             lineOption.option.extentAccessor = 'close';
 
-            var point = fc.series.point();
+            var point = fc.series.point()
+                .xValue(function(d) { return d.date; });
             point.id = util.uid();
             var pointOption = model.menu.option('Point', 'point', point, 'bf-icon-point-series');
             pointOption.option.extentAccessor = 'close';
 
-            var area = fc.series.area();
+            var area = fc.series.area()
+                .xValue(function(d) { return d.date; });
             area.id = util.uid();
             var areaOption = model.menu.option('Area', 'area', area, 'bf-icon-area-series');
             areaOption.option.extentAccessor = 'close';
@@ -2249,6 +2270,7 @@
                     select.enter()
                         .classed('movingAverage', true);
                 })
+                .xValue(function(d) { return d.date; })
                 .yValue(function(d) { return d.movingAverage; });
             movingAverage.id = util.uid();
 
@@ -2306,7 +2328,7 @@
             navReset: model.chart.navigationReset(),
             headMenu: model.menu.head([products.generated, products.quandl], products.generated, periods.day1),
             legend: model.chart.legend(products.generated, periods.day1),
-            overlay: model.menu.overlay(),
+            overlay: model.menu.overlay([products.generated, products.quandl], products.generated),
             notificationMessages: model.notification.messages()
         };
     }
@@ -2336,9 +2358,13 @@
         <div class="row head-menu head-row"> \
             <div class="col-md-12 head-sub-row"> \
                 <div id="product-dropdown" class="dropdown product-dropdown"></div> \
-                <div id="period-selector" class="hidden-xs hidden-sm"></div> \
-                <div id="mobile-period-selector" class="hidden-md hidden-lg dropdown"></div> \
-                <span id="clear-indicators" class="icon bf-icon-delete delete-button hidden-md hidden-lg"></span> \
+                <div class="selectors"> \
+                    <div class="series-dropdown dropdown selector-dropdown"></div> \
+                    <div class="indicator-dropdown dropdown selector-dropdown"></div> \
+                    <div id="mobile-period-selector" class="dropdown"></div> \
+                </div> \
+                <div id="period-selector"></div> \
+                <span id="clear-indicators" class="icon bf-icon-delete delete-button"></span> \
             </div> \
         </div> \
         <div class="row primary-row"> \
@@ -2351,7 +2377,7 @@
                     <div class="x-axis-row"> \
                         <svg id="x-axis-container"></svg> \
                     </div> \
-                    <div id="navbar-row" class="hidden-xs hidden-sm"> \
+                    <div id="navbar-row"> \
                         <svg id="navbar-container"></svg> \
                         <svg id="navbar-reset"></svg> \
                     </div> \
@@ -2359,11 +2385,14 @@
                 <div id="overlay"> \
                     <div id="overlay-primary-container"> \
                         <div id="overlay-primary-head"> \
-                            <div id="selectors"> \
-                                <div id="series-dropdown" class="dropdown selector-dropdown"></div> \
-                                <div id="indicator-dropdown" class="dropdown selector-dropdown"></div> \
+                            <div class="selectors"> \
+                                <div id="mobile-product-dropdown" class="dropdown"></div> \
+                                <div class="series-dropdown dropdown selector-dropdown"></div> \
+                                <div class="indicator-dropdown dropdown selector-dropdown"></div> \
                             </div> \
-                            <div id="legend" class="hidden-xs hidden-sm"></div> \
+                            <div id="legend"> \
+                                <svg id="tooltip"></svg> \
+                            </div> \
                         </div> \
                         <div id="overlay-primary-bottom"> \
                             <div class="edit-indicator-container"></div> \
@@ -2379,7 +2408,7 @@
                         <div class="edit-indicator-container"></div> \
                     </div> \
                     <div class="x-axis-row"></div> \
-                    <div id="overlay-navbar-row" class="hidden-xs hidden-sm"></div> \
+                    <div id="overlay-navbar-row"></div> \
                 </div> \
             </div> \
         </div> \
@@ -2391,7 +2420,7 @@
 
         var model = initialiseModel();
 
-        var _dataInterface;
+        var _dataInterface = initialiseDataInterface();
 
         var charts = {
             primary: undefined,
@@ -2408,6 +2437,8 @@
         var toastNotifications;
 
         var fetchCoinbaseProducts = false;
+
+        var proportionOfDataToDisplayByDefault = 0.2;
 
         var firstRender = true;
         function renderInternal() {
@@ -2448,7 +2479,7 @@
                 .datum(model.headMenu)
                 .call(headMenu);
 
-            containers.app.select('#selectors')
+            containers.app.selectAll('.selectors')
                 .datum(model.selectors)
                 .call(selectors);
 
@@ -2539,7 +2570,7 @@
             var data = model.primaryChart.data;
             var dataDomain = fc.util.extent()
                 .fields('date')(data);
-            var navTimeDomain = util.domain.moveToLatest(dataDomain, data, 0.2);
+            var navTimeDomain = util.domain.moveToLatest(dataDomain, data, proportionOfDataToDisplayByDefault);
             onViewChange(navTimeDomain);
         }
 
@@ -2563,6 +2594,7 @@
             model.primaryChart.product = product;
             model.secondaryChart.product = product;
             model.legend.product = product;
+            model.overlay.selectedProduct = product;
         }
 
         function updateModelSelectedPeriod(period) {
@@ -2704,7 +2736,11 @@
         function initialiseOverlay() {
             return menu.overlay()
                 .on(event.primaryChartIndicatorChange, onPrimaryIndicatorChange)
-                .on(event.secondaryChartChange, onSecondaryChartChange);
+                .on(event.secondaryChartChange, onSecondaryChartChange)
+                .on(event.dataProductChange, function(product) {
+                    changeProduct(product.option);
+                    render();
+                });
         }
 
         function onNotificationClose(id) {
@@ -2727,7 +2763,7 @@
                 var productPeriodOverrides = d3.map();
                 productPeriodOverrides.set('BTC-USD', [model.periods.minute1, model.periods.minute5, model.periods.hour1, model.periods.day1]);
                 var formattedProducts = formatCoinbaseProducts(bitcoinProducts, model.sources.bitcoin, defaultPeriods, productPeriodOverrides);
-                model.headMenu.products = model.headMenu.products.concat(formattedProducts);
+                model.headMenu.products = model.overlay.products = model.headMenu.products.concat(formattedProducts);
             }
 
             render();
@@ -2744,9 +2780,14 @@
         app.changeQuandlProduct = function(productString) {
             var product = data.product(productString, productString, [model.periods.day1], model.sources.quandl, '.3s');
             var existsInHeadMenuProducts = model.headMenu.products.some(function(p) { return p.id === product.id; });
+            var existsInOverlayProducts = model.overlay.products.some(function(p) { return p.id === product.id; });
 
             if (!existsInHeadMenuProducts) {
                 model.headMenu.products.push(product);
+            }
+
+            if (!existsInOverlayProducts) {
+                model.overlay.products.push(product);
             }
 
             changeProduct(product);
@@ -2754,6 +2795,14 @@
             if (!firstRender) {
                 render();
             }
+        };
+
+        app.proportionOfDataToDisplayByDefault = function(x) {
+            if (!arguments.length) {
+                return proportionOfDataToDisplayByDefault;
+            }
+            proportionOfDataToDisplayByDefault = x;
+            return app;
         };
 
         app.run = function(element) {
@@ -2791,7 +2840,6 @@
             charts.primary = initialisePrimaryChart();
             charts.navbar = initialiseNav();
 
-            _dataInterface = initialiseDataInterface();
             headMenu = initialiseHeadMenu();
             navReset = initialiseNavReset();
             selectors = initialiseSelectors();
@@ -2811,6 +2859,10 @@
 
         fc.util.rebind(app, model.sources.quandl.historicFeed, {
             quandlApiKey: 'apiKey'
+        });
+
+        fc.util.rebind(app, _dataInterface, {
+            periodsOfDataToFetch: 'candlesOfData'
         });
 
         return app;
